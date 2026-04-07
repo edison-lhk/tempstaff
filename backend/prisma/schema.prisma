@@ -1,0 +1,195 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  regular
+  business
+  admin
+}
+
+enum QualificationStatus {
+  created
+  submitted
+  approved
+  rejected
+  revised
+}
+
+enum JobStatus {
+  open
+  filled
+  cancelled
+  expired
+  completed
+}
+
+enum NegotiationStatus {
+  active
+  success
+  failed
+  expired
+}
+
+model Account {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  role Role
+  activated Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  regular RegularProfile?
+  business BusinessProfile?
+  admin AdminProfile?
+
+  resetTokens ResetToken[]
+}
+
+model AdminProfile {
+  id Int @id
+  account Account @relation(fields: [id], references: [id])
+
+  utorid String @unique
+}
+
+model RegularProfile {
+  id Int @id
+  account Account @relation(fields: [id], references: [id])
+
+  first_name String
+  last_name String
+  phone_number String @default("")
+  postal_address String @default("")
+  birthday String @default("1970-01-01")
+
+  suspended Boolean @default(false)
+
+  avatar String?
+  resume String?
+  biography     String   @default("")
+
+  available Boolean @default(false)
+  lastActiveAt  DateTime @default(now())
+
+  qualifications Qualification[]
+
+  jobs Job[]
+
+  interests Interest[]
+
+  negotiations Negotiation[]
+}
+
+model BusinessProfile {
+  id Int @id
+  account Account @relation(fields: [id], references: [id])
+
+  business_name String
+  owner_name    String
+  phone_number  String
+  postal_address String
+  location Json
+
+  verified      Boolean @default(false)
+
+  avatar String?
+  biography String @default("")
+
+  jobs Job[]
+}
+
+model ResetToken {
+  token     String   @id
+  expiresAt DateTime
+  used Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  accountId Int
+  account   Account  @relation(fields: [accountId], references: [id])
+}
+
+model PositionType {
+  id Int @id @default(autoincrement())
+  name String
+  description String
+  hidden Boolean @default(true)
+
+  qualifications Qualification[]
+
+  jobs Job[]
+}
+
+model Qualification {
+  id Int @id @default(autoincrement())
+  status QualificationStatus
+  note String @default("")
+  document String?
+  updatedAt DateTime @updatedAt
+
+  userId Int
+  positionTypeId Int
+
+  user RegularProfile @relation(fields: [userId], references: [id])
+  positionType PositionType @relation(fields: [positionTypeId], references: [id])
+
+  @@unique([userId, positionTypeId])
+}
+
+model Job {
+  id Int @id @default(autoincrement())
+  status JobStatus @default(open)
+  note String @default("") 
+  salary_min Float
+  salary_max Float
+  start_time DateTime
+  end_time DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  businessId Int
+  positionTypeId Int
+  workerId       Int?
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+  positionType PositionType @relation(fields: [positionTypeId], references: [id])
+  negotiations Negotiation[]
+  worker RegularProfile? @relation(fields: [workerId], references: [id])
+  interests Interest[]
+}
+
+
+model Interest {
+  id Int @id @default(autoincrement())
+  jobId Int
+  userId Int
+  candidateInterest Boolean?
+  businessInterest Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job Job @relation(fields: [jobId], references: [id])
+  user RegularProfile  @relation(fields: [userId], references: [id])
+  negotiations Negotiation[]
+
+  @@unique([jobId, userId])
+}
+
+
+model Negotiation {
+  id Int @id @default(autoincrement())
+  status NegotiationStatus @default(active)
+  jobId Int
+  userId Int
+  interestId    Int
+  candidateDecision Boolean?
+  businessDecision Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+  job Job @relation(fields: [jobId], references: [id])
+  user RegularProfile @relation(fields: [userId], references: [id])
+  interest Interest @relation(fields: [interestId], references: [id])
+}
