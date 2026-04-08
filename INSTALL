@@ -1,10 +1,3 @@
-# This text file should explain how to deploy your website.
-
-# You should write detailed description on:
-
-# 1. All the packages you need to install
-# 2. How to configure various servers (e.g., Nginx, Apache, etc)
-
 # INSTALLATION GUIDE
 
 Follow these steps to set up the project on your local machine.
@@ -70,5 +63,70 @@ The backend should now be running at: http://localhost:3000
 
 The frontend should now be running at: http://localhost:5173
 
+---
+
 ## Deployment on Railway
 
+Both the frontend and backend services are deployed using Railway.
+
+### Create a New Project
+
+1. Go to the Railway dashboard.
+2. Click "New Project".
+3. Select "Deploy from Github repo".
+4. Choose TempStaff repository.
+
+### Frontend Setup
+
+1. Click "+ Create" → GitHub Repo → select TempStaff repository.
+
+2. Name the service as frontend.
+
+3. Go to the Settings tab and configure:
+   - Root Directory: /frontend
+   - Build Command: npm run build
+   - Start Command: npx serve -s dist
+
+4. Click Deploy.
+
+5. After deployment:
+   - Go to Settings → Networking
+   - Click Generate Domain
+
+   The URL https://frontend-production-628c.up.railway.app/ is generated in this step.
+
+### Backend Setup
+
+1. Create another service by clicking "+ Create" → GitHub Repo → select TempStaff repository.
+
+2. Name the service as backend.
+
+3. Go to the Settings tab and configure:
+   - Root Directory: /backend
+   - Build Command: npm run build (contains npx prisma generate, npx prisma db push and npm run seed)
+   - Start Command: npm run start
+
+4. Configure environment variables
+
+   To allow frontend-backend communication:
+   
+   1. Go to Variables tab in backend service
+   2. Click Raw Editor
+   3. Add FRONTEND_URL=https://frontend-production-628c.up.railway.app
+
+5. Click Deploy.
+
+6. After deployment:
+   - Go to Settings → Networking
+   - Click Generate Domain
+
+   The URL https://backend-production-d08a.up.railway.app is generated in this step.
+
+7. Update Frontend to connect to Backend
+
+   Now connect frontend → backend:
+
+   1. Go to frontend service → Variables
+   2. Add VITE_BACKEND_URL=https://backend-production-d08a.up.railway.app
+
+8. Reploy Frontend to apply the changes.
