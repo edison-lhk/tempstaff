@@ -15,6 +15,7 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 export default function AdminPositionTypesPage() {
   const [positionTypes, setPositionTypes] = useState([]);
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -50,10 +51,17 @@ export default function AdminPositionTypesPage() {
       return;
     }
 
+    if (!newDescription.trim()) {
+      setActionError("Description is required.");
+      return;
+    }
+
     try {
-      const created = await createAdminPositionTypeApi({ name: newName.trim() });
+      const created = await createAdminPositionTypeApi({ name: newName.trim(), description: newDescription.trim(),
+        hidden: true, });
       setPositionTypes((current) => [created, ...current]);
       setNewName("");
+      setNewDescription(""); 
       setSuccess("Position type created successfully.");
     } catch (err) {
       setActionError(err.message || "Failed to create position type.");
@@ -121,6 +129,12 @@ export default function AdminPositionTypesPage() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Enter position type name"
+          />
+          <input
+            className="input"
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="Description"
           />
           <button className="button" type="submit">
             Create
