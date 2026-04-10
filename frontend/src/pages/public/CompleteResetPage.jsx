@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import PageShell from "../../components/layout/PageShell";
 import { completeResetApi } from "../../api/auth";
 
 export default function CompleteResetPage() {
-  const { token } = useParams();
+  const { resetToken } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState({
     password: "",
@@ -34,7 +35,7 @@ export default function CompleteResetPage() {
     setError("");
     setSuccess("");
 
-    if (!token) {
+    if (!resetToken) {
       setError("Missing reset token.");
       return;
     }
@@ -54,7 +55,8 @@ export default function CompleteResetPage() {
     setIsSubmitting(true);
 
     try {
-      await completeResetApi(token, {
+      await completeResetApi(resetToken, {
+        email: location?.state.email,
         password: form.password,
       });
 

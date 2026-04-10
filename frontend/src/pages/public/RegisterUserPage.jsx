@@ -49,10 +49,7 @@ export default function RegisterUserPage() {
         email: form.email.trim(),
       });
 
-      const resetToken =
-        resetResponse.resetToken ||
-        resetResponse.token ||
-        resetResponse.results?.resetToken;
+      const resetToken = resetResponse.resetToken;
 
       if (!resetToken) {
         throw new Error("Activation token was not returned by the server.");

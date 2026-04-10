@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageShell from "../../components/layout/PageShell";
 import { requestResetApi } from "../../api/auth";
 
 export default function RequestResetPage() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -16,10 +18,23 @@ export default function RequestResetPage() {
     setIsSubmitting(true);
 
     try {
-      await requestResetApi({ email: email.trim() });
+      const resetResponse = await requestResetApi({ email: email.trim() });
+
+      const resetToken = resetResponse.resetToken;
+
+      if (!resetToken) {
+        throw new Error("Activation token was not returned by the server.");
+      }
+
       setSuccess(
         "If the account exists, a reset request has been created. Use your valid reset token on the next page."
       );
+
+      navigate(`/reset/${resetToken}`, {
+        state: {
+          email: email.trim()
+        },
+      });
     } catch (err) {
       setError(err.message || "Failed to request password reset.");
     } finally {

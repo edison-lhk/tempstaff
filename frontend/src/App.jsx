@@ -62,7 +62,7 @@ export default function App() {
             <Route path="/register/business" element={<RegisterBusinessPage />} />
             <Route path="/activate/:resetToken" element={<ActivateAccountPage />} />
             <Route path="/reset/request" element={<RequestResetPage />} />
-            <Route path="/reset/:token" element={<CompleteResetPage />} />
+            <Route path="/reset/:resetToken" element={<CompleteResetPage />} />
             <Route path="/businesses" element={<BusinessesPage />} />
             <Route path="/businesses/:businessId" element={<BusinessDetailPage />} />
 
