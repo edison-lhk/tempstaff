@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageShell from "../../components/layout/PageShell";
-import { getCandidateByIdApi, setCandidateInterestApi, getJobInterestsApi } from "../../api/jobs";
+import { getCandidateByIdApi, setCandidateInterestApi, getJobCandidatesApi } from "../../api/jobs";
 import ErrorAlert from "../../components/common/ErrorAlert";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import EmptyState from "../../components/common/EmptyState";
@@ -26,15 +26,15 @@ export default function CandidateDetailPage() {
       try {
         setLoading(true);
         setError("");
-        const [candidateData, interestsData] = await Promise.all([
+        const [candidateData, candidatesData] = await Promise.all([
           getCandidateByIdApi(jobId, userId),
-          getJobInterestsApi(jobId),
+          getJobCandidatesApi(jobId),
         ]);
         setCandidate(candidateData);
 
-        const interests = interestsData.results || [];
-        const match = interests.find(i => i.user?.id === candidateData.user?.id);
-        setBusinessInterest(!!match);
+        const candidates = candidatesData.results || [];
+        const match = candidates.find(c => c.id === candidateData.user?.id);
+        setBusinessInterest(match.invited);
       } catch (err) {
         setError(err.message || "Failed to load candidate details.");
       } finally {
@@ -47,14 +47,14 @@ export default function CandidateDetailPage() {
     }
   }, [jobId, userId]);
 
-  const handleExpressInterest = async () => {
+  const handleExpressInterest = async (interest) => {
     try {
       setInterestLoading(true);
       setActionError("");
       setSuccess("");
 
-      await setCandidateInterestApi(jobId, userId, { interested: true });
-      setBusinessInterest(true);
+      await setCandidateInterestApi(jobId, userId, { interested: interest });
+      setBusinessInterest(interest);
       setSuccess("Business interest recorded successfully.");
     } catch (err) {
       setActionError(err.message || "Failed to express interest.");
@@ -293,18 +293,26 @@ export default function CandidateDetailPage() {
               {success ? <div className="card card--muted">{success}</div> : null}
 
               <div className="row">
-                <button
-                  className="button"
-                  type="button"
-                  disabled={businessInterest || interestLoading}
-                  onClick={handleExpressInterest}
-                >
-                  {interestLoading
-                    ? "Saving..."
-                    : businessInterest
-                    ? "Interest Sent"
-                    : "Express Interest"}
-                </button>
+                {!businessInterest ? (
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={interestLoading}
+                    onClick={() => handleExpressInterest(true)}
+                  >
+                    {interestLoading ? "Saving..." : "Express Interest"}
+                  </button>
+                  ) : (
+                    <button
+                      className="button button--danger"
+                      type="button"
+                      disabled={interestLoading}
+                      onClick={() => handleExpressInterest(false)}
+                    >
+                      {interestLoading ? "Saving..." : "Withdraw Interest"}
+                    </button>
+                  )
+                }
               </div>
             </div>
           </div>
